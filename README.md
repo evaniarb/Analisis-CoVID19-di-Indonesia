@@ -1,1 +1,0 @@
-# Analisis-CoVID19-di-Indonesia
