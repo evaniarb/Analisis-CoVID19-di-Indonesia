@@ -1,1 +1,34 @@
+#Halo Jawa Barat?
+library(httr)
+resp_jabar <- GET("https://data.covid19.go.id/public/api/prov_detail_JAWA_BARAT.json")
+cov_jabar_raw <- content(resp_jabar, as = "parsed", simplifyVector = TRUE)
 
+
+names(cov_jabar_raw)
+cov_jabar_raw$kasus_total
+cov_jabar_raw$meninggal_persen
+cov_jabar_raw$sembuh_persen
+
+#gimme more information, please!
+cov_jabar <- cov_jabar_raw$list_perkembangan
+str(cov_jabar)
+head(cov_jabar)
+
+#Lets tame the data!
+library(dplyr)
+new_cov_jabar <-
+  cov_jabar %>% 
+  select(-contains("DIRAWAT_OR_ISOLASI")) %>% 
+  select(-starts_with("AKUMULASI")) %>% 
+  rename(
+    kasus_baru = KASUS,
+    meninggal = MENINGGAL,
+    sembuh = SEMBUH
+    ) %>% 
+  mutate(
+    tanggal = as.POSIXct(tanggal / 1000, origin = "1970-01-01"),
+    tanggal = as.Date(tanggal)
+  )
+str(new_cov_jabar)  
+
+#Explain this to them with graphics, they dont understand
