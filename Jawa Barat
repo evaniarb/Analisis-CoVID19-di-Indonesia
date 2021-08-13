@@ -32,3 +32,65 @@ new_cov_jabar <-
 str(new_cov_jabar)  
 
 #Explain this to them with graphics, they dont understand
+library(ggplot2)
+library(hrbrthemes)
+ggplot(new_cov_jabar, aes(x = tanggal, y = kasus_baru)) +
+  geom_col()
+  
+#lanjutan
+library(ggplot2)
+library(hrbrthemes)
+ggplot(new_cov_jabar, aes(tanggal, KASUS_BARU)) +
+	geom_col(fill = "salmon") +
+	labs (
+	  x = NULL,
+	  y = "Jumlah Kasus",
+	  title = "Kasus Harian Positif COVID-19 di Jawa Barat",
+	  subtitle = "Terjadi pelonjakan kasus di awal bulan Juli akibat 	klaster Secapa AD Bandung",
+	  caption = "Sumber data: covid.19.go.id"
+	 ) +
+	theme_ipsum(
+	  base_size = 13,
+	  plot_title_size = 21,
+	  grid = "Y",
+	  ticks = TRUE
+	 ) +
+theme(plot.title.position = "plot")
+
+#mereka yang berhasil sembuh
+library(ggplot2)
+library(hrbrthemes)
+ggplot(new_cov_jabar, aes(tanggal, sembuh)) +
+  geom_col(fill = "olivedrab2") +
+  labs(
+    x = NULL,
+    y = "Jumlah kasus",
+    title = "Kasus Harian Sembuh Dari COVID-19 di Jawa Barat",
+    caption = "Sumber data: covid.19.go.id"
+  ) +
+  theme_ipsum(
+    base_size = 13, 
+    plot_title_size = 21,
+    grid = "Y",
+    ticks = TRUE
+  ) +
+  theme(plot.title.position = "plot")
+  
+  #Turut berduka untuk yang meninggal
+  library(ggplot2)
+library(hrbrthemes)
+ggplot(new_cov_jabar, aes(tanggal, meninggal)) +
+  geom_col(fill = "darkslategray4") +
+  labs(
+    x = NULL,
+    y = "Jumlah kasus",
+    title = "Kasus Harian Meninggal Akibat COVID-19 di Jawa Barat",
+    caption = "Sumber data: covid.19.go.id"
+  ) +
+  theme_ipsum(
+    base_size = 13, 
+    plot_title_size = 21,
+    grid = "Y",
+    ticks = TRUE
+  ) +
+  theme(plot.title.position = "plot")
