@@ -1,0 +1,142 @@
+#mendingan pekan ini atau kemarin?
+library(dplyr)
+library(lubridate)
+
+cov_jabar_pekanan <- new_cov_jabar %>% 
+  count(
+    tahun = year(tanggal),
+    pekan_ke = week(tanggal),
+    wt = kasus_baru,
+    name = "jumlah"
+  )
+
+glimpse(cov_jabar_pekanan)
+
+#lanjutan
+library(dplyr)
+cov_jabar_pekanan <-
+  cov_jabar_pekanan %>% 
+  mutate(
+    jumlah_pekanlalu = dplyr::lag(jumlah, 1),
+    jumlah_pekanlalu = ifelse(is.na(jumlah_pekanlalu), 0, jumlah_pekanlalu),
+    lebih_baik = jumlah < jumlah_pekanlalu
+  )
+glimpse(cov_jabar_pekanan)
+
+#bar chart dengan package ggplot2 dan hrbrthemes
+library(ggplot2)
+library(hrbrthemes)
+
+ggplot(cov_jabar_pekanan[cov_jabar_pekanan$tahun==2020,], aes(pekan_ke, jumlah, fill = lebih_baik)) +
+geom_col(show.legend = FALSE) +
+  scale_x_continuous(breaks = 9:29, expand = c(0, 0)) +
+  scale_fill_manual(values = c("TRUE" = "seagreen3", "FALSE" = "salmon")) +
+    labs(
+        x = NULL,
+        y = "Jumlah kasus",
+        title = "Kasus Pekanan Positif COVID-19 di Jawa Barat",
+        subtitle = "Kolom hijau menunjukan penambahan kasus baru lebih sedikit dibandingkan satu pekan sebelumnya",
+        caption = "Sumber data: covid.19.go.id"
+        ) +
+    theme_ipsum(
+        base_size = 13,
+        plot_title_size = 21,
+        grid = "Y",
+        ticks = TRUE
+        ) +
+
+theme(plot.title.position = "plot")
+
+#pola dan dinamika
+#Hingga saat ini ada berapa kasus yang masih aktif?
+#pakai cumsum() untuk menghitung nilai akumulasi dari suatu vektor numerik
+library(dplyr)
+cov_jabar_akumulasi <- 
+  new_cov_jabar %>% 
+  transmute(
+    tanggal,
+    akumulasi_aktif = cumsum(kasus_baru) - cumsum(sembuh) - cumsum(meninggal),
+    akumulasi_sembuh = cumsum(sembuh),
+    akumulasi_meninggal = cumsum(meninggal)
+  )
+
+tail(cov_jabar_akumulasi)
+
+#line chart time!
+library(ggplot2)
+ggplot(data = cov_jabar_akumulasi, aes(x = tanggal, y = akumulasi_aktif)) +
+  geom_line()
+  
+#good news and bad news
+#lakukan transformasi data
+library(dplyr)
+library(tidyr)
+
+dim(cov_jabar_akumulasi)
+
+cov_jabar_akumulasi_pivot <- 
+  cov_jabar_akumulasi %>% 
+  gather(
+    key = "kategori",
+    value = "jumlah",
+    -tanggal
+  ) %>% 
+  mutate(
+    kategori = sub(pattern = "akumulasi_", replacement = "", kategori)
+  )
+
+dim(cov_jabar_akumulasi_pivot)
+
+glimpse(cov_jabar_akumulasi_pivot)
+
+#pivot
+#pakai pivot_longer() sebagai ganti gather () dan pivot_wider() dan spread() karena pivot_longer() lebih lengkap
+#DIBAWAH HANYA CONTOH (RUN SECARA TERPISAH)
+cov_jabar_akumulasi_pivot <-
+  cov_jabar_akumulasi %>%
+  pivot_longer (
+    cols = -tanggal,
+    names_to = "kategori",
+    names_prefix = "akumulasi_",
+    values_to = "jumlah"
+   )
+
+#real case pivot
+library(ggplot2)
+library(hrbrthemes)
+  ggplot(cov_jabar_akumulasi_pivot, aes(tanggal, jumlah, colour = (kategori))) +
+  geom_line(size = 0.9) +
+    scale_y_continuous(sec.axis = dup_axis(name = NULL)) +
+    scale_colour_manual(
+     values = c(
+        "aktif" = "salmon",
+        "meninggal" = "darkslategray4",
+        "sembuh" = "olivedrab2"
+      ),
+  labels = c("Aktif", "Meninggal", "Sembuh")
+  ) +
+      labs(
+        x = NULL,
+        y = "Jumlah kasus akumulasi",
+        colour = NULL,
+        title = "Dinamika Kasus COVID-19 di Jawa Barat",
+        caption = "Sumber data: covid.19.go.id"
+      ) +
+theme_ipsum(
+base_size = 13,
+plot_title_size = 21,
+grid = "Y",
+ticks = TRUE
+) +
+theme(
+plot.title = element_text(hjust = 0.5),
+legend.position = "top"
+)
+
+#catatan
+#metriks untuk mengukur persebaran covid
+#https://www.bangkokpost.com/opinion/opinion/1902320/taking-the-fight-to-covid-19-using-simple-mathematics
+#https://towardsdatascience.com/how-the-seventh-day-amplification-factor-can-gauge-the-existence-of-corona-silent-carriers-b9414ef3df62
+
+#kasus pekan ini dan pekan berikutnya bagaimana
+#komparasi antar provinsi
